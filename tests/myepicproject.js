@@ -1,15 +1,15 @@
 const anchor = require('@project-serum/anchor');
-const { SystemProgram } = require('@solana/web3.js');
+const { SystemProgram,  Connection, clusterApiUrl, } = require('@solana/web3.js');
+const assert = require("assert");
 
-describe('myepicproject', () => {
-  const anchor = require('@project-serum/anchor');
+function createConnection(url = clusterApiUrl('devnet')) {
+  return new Connection(url);
+}
 
-  const main = async () => {
-    console.log("🚀 Starting test...")
-    // Create and set provider. So that it can communicate with our frontend;
-    const provider = anchor.Provider.env();
-    anchor.setProvider(provider);
-    
+describe('Testing myepicproject', () => {
+  const provider = anchor.Provider.env();
+  anchor.setProvider(provider);
+  it("Create and initialize an account", async () => {
     const program = anchor.workspace.Myepicproject;
 
     // Create an account keypair for our program to use.
@@ -23,12 +23,19 @@ describe('myepicproject', () => {
       signers: [baseAccount]
     })
     console.log("📝 Your transaction signature", tx);
+    _baseAccount = baseAccount
+  });
 
-    // Fetch data from the account
+  it("Fetching data from the account", async () => {
+    const baseAccount = _baseAccount;
+    const program = anchor.workspace.Myepicproject;
     let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-    console.log('Gif count: ', account.totalGifs.toString());
+    assert("0", account.totalGifs);
+  });
 
-    // Add a gif
+  it("Adding a gif", async () => {
+    const baseAccount = _baseAccount;
+    const program = anchor.workspace.Myepicproject;
     const gifLink = "https://media1.giphy.com/media/x872sor0UNWmc/giphy.gif?cid=ecf05e47u9soq8zxs700d4fnutzkztnjd5tn59oslj69f61l&rid=giphy.gif&ct=g";
     await program.rpc.addGif(gifLink, {
       accounts: {
@@ -36,40 +43,40 @@ describe('myepicproject', () => {
         user: provider.wallet.publicKey
       }
     });
+    let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+    assert(1, account.totalGifs);
+  });
 
-    await program.rpc.addGif(gifLink, {
+  it("Upvote a gif", async () => {
+    const baseAccount = _baseAccount;
+    const program = anchor.workspace.Myepicproject;
+    await program.rpc.upvote(new anchor.BN(0), {
       accounts: {
-        baseAccount: baseAccount.publicKey,
-        user: provider.wallet.publicKey
+        baseAccount: baseAccount.publicKey
+      }
+    })
+
+    let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
+    assert(2, account.gifList[0].votes);
+  });
+
+  it("Send a tip", async () => {
+    const connection = createConnection();
+    const baseAccount = _baseAccount;
+    const program = anchor.workspace.Myepicproject;
+    let tx = await program.rpc.tip(new anchor.BN(0.5), {
+      accounts: {
+        to: baseAccount.publicKey,
+        from: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
       }
     });
 
-    account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-    console.log('Gif count: ', account.totalGifs.toString());
-    console.log('Gif list', account.gifList);
-
-    console.log("Trying to upvote");
-    // await program.rpc.upvote(0, {
-    //   accounts: {
-    //     baseAccount: baseAccount.publicKey
-    //   }
-    // })
-
-    account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-    console.log('Gif count: ', account.totalGifs.toString());
-    console.log('Gif list', account.gifList);
-  }
-
-  const runMain = async () => {
-    try {
-      await main();
-      process.exit(0);
-    } catch (error) {
-      console.error(error);
-      process.exit(1);
-    }
-  };
-  
-  runMain();
-});
-
+    console.log("Tip transaction signature: ", tx);
+    console.log(baseAccount.publicKey)
+    const balanceAccount = await connection.getBalance(baseAccount.publicKey);
+    const walletAccount =  await connection.getBalance(provider.wallet.publicKey);
+    console.log("baseAccount balance: ", balanceAccount);
+    console.log("Wallet balance: ", walletAccount);
+  });
+})
