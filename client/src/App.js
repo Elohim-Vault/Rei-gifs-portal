@@ -213,7 +213,7 @@ const sendGif = async () => {
       <div className="container">
         <div className="header-container">
           <p className="header">
-            <img src='./assets/rei-icon.png' />
+            {/* <img src={reiIcon} /> */}
             BEST EVA GIRL GIFS
           </p>
           <p className="sub-text">
