@@ -2,9 +2,6 @@ const anchor = require('@project-serum/anchor');
 const { SystemProgram,  Connection, clusterApiUrl, } = require('@solana/web3.js');
 const assert = require("assert");
 
-function createConnection(url = clusterApiUrl('devnet')) {
-  return new Connection(url);
-}
 
 describe('Testing myepicproject', () => {
   const provider = anchor.Provider.env();
