@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import twitterLogo from './assets/twitter-logo.svg';
+import reiIcon from './assets/rei-icon.png';
+
 import './App.css';
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { Program, Provider, web3 } from '@project-serum/anchor';
@@ -211,7 +213,7 @@ const sendGif = async () => {
       <div className="container">
         <div className="header-container">
           <p className="header">
-            <img src='rei-icon.png' />
+            <img src='./assets/rei-icon.png' />
             BEST EVA GIRL GIFS
           </p>
           <p className="sub-text">
