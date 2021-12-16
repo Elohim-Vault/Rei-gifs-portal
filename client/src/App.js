@@ -124,14 +124,26 @@ const sendGif = async () => {
     try {
       const provider = getProvider();
       const program = new Program(idl, programID, provider);
-      const account = await program.account.baseAccount.fetch(baseAccount.publicKey);
-      
-      console.log("Got the account", account)
+      const account = await program.account.baseAccount.fetch(baseAccount.publicKey);      
       setGifList(account.gifList)
   
     } catch (error) {
       console.log("Error in getGifList: ", error)
       setGifList(null);
+    }
+  }
+
+  const upvoteGif = async (id) => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      await program.rpc.upvote(id, {
+        accounts: {
+          baseAccount: baseAccount.publicKey
+        }
+      })
+    } catch (err) {
+      console.error("Upvote gif error: ", err);
     }
   }
 
@@ -185,6 +197,9 @@ const sendGif = async () => {
           {gifList.map((item, index) => (
             <div className="gif-item" key={index}>
               <img src={item.gifLink} />
+              {console.log(item.votes)}
+              {/* <button className="upvotetn" onClick={() => upvoteGif(item.id)}>upvote</button>
+              <p>{item.votes}</p> */}
             </div>
           ))}
         </div>

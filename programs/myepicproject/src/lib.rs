@@ -6,9 +6,8 @@ declare_id!("FUcBbwK4tqdb2AeunbgHBRPPRKKnzetBKat6YGh1pffS");
 pub mod myepicproject {
     use super::*;
     // Initialization method
-    pub fn start_stuff_off(ctx: Context<StartStuffOff>) -> ProgramResult {
-        let base_account = &mut ctx.accounts.base_account;
-        base_account.total_gifs = 0;
+    pub fn start_stuff_off(ctx: Context<StartStuffOff>, account_bump: u8) -> ProgramResult {
+        ctx.accounts.base_account.bump = account_bump;
         Ok(())
     }
 
@@ -40,15 +39,26 @@ pub mod myepicproject {
         }
         Ok(())
     }
+
+    // pub fn tip(ctx: Context<Tip>, amount: u64) -> ProgramResult {
+    //     Ok(())
+    // }
 }
 
 // Implement a deserializer in struct data.
 // how to initialize it and what to hold in our StartStuffOff context.
 #[derive(Accounts)]
+#[instruction(base_account_bump: u8)]
 pub struct StartStuffOff<'info> {
-    #[account(init, payer = user, space = 9000)]
+    #[account(
+        init,
+        payer = user,
+        seeds = [b"base_account".as_ref()],
+        bump = base_account_bump,
+        space = 9000
+    )]
     pub base_account: Account<'info, BaseAccount>,
-    #[account(mut)] // Now we can use that
+    #[account(mut)] 
     pub user: Signer<'info>,
     pub system_program: Program <'info, System>,
 }
@@ -72,12 +82,6 @@ pub struct ItemStruct {
     pub votes: u32,
 }
 
-// This struct will be serialized and stored
-#[account]
-pub struct BaseAccount {
-    pub total_gifs: u64,
-    pub gif_list: Vec<ItemStruct>
-}
 
 #[derive(Accounts)]
 pub struct Upvote<'info> {
@@ -85,3 +89,11 @@ pub struct Upvote<'info> {
     pub base_account: Account<'info, BaseAccount>
 }
 
+// This struct will be serialized and stored
+#[account]
+#[derive(Default)]
+pub struct BaseAccount {
+    pub total_gifs: u64,
+    pub gif_list: Vec<ItemStruct>,
+    pub bump: u8,
+}
