@@ -11,7 +11,6 @@ describe('Testing myepicproject', () => {
   anchor.setProvider(provider);
   it("Create and initialize an account", async () => {
     const program = anchor.workspace.Myepicproject;
-
     // Create an account keypair for our program to use.
     const baseAccount = anchor.web3.Keypair.generate();
     let tx = await program.rpc.startStuffOff({
@@ -58,25 +57,5 @@ describe('Testing myepicproject', () => {
 
     let account = await program.account.baseAccount.fetch(baseAccount.publicKey);
     assert(2, account.gifList[0].votes);
-  });
-
-  it("Send a tip", async () => {
-    const connection = createConnection();
-    const baseAccount = _baseAccount;
-    const program = anchor.workspace.Myepicproject;
-    let tx = await program.rpc.tip(new anchor.BN(0.5), {
-      accounts: {
-        to: baseAccount.publicKey,
-        from: provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      }
-    });
-
-    console.log("Tip transaction signature: ", tx);
-    console.log(baseAccount.publicKey)
-    const balanceAccount = await connection.getBalance(baseAccount.publicKey);
-    const walletAccount =  await connection.getBalance(provider.wallet.publicKey);
-    console.log("baseAccount balance: ", balanceAccount);
-    console.log("Wallet balance: ", walletAccount);
   });
 })
