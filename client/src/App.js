@@ -5,15 +5,12 @@ import reiIcon from './assets/rei-icon.png';
 import './App.css';
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { Program, Provider, web3 } from '@project-serum/anchor';
-import kp from './keypair.json'
 import idl from './idl.json'
 
-const { SystemProgram, Keypair } = web3;
+const { SystemProgram} = web3;
 
 
-const arr = Object.values(kp._keypair.secretKey)
-const secret = new Uint8Array(arr)
-const baseAccount = web3.Keypair.fromSecretKey(secret)
+
 // Get our program's id from the IDL file.
 const programID = new PublicKey(idl.metadata.address);
 
@@ -96,7 +93,7 @@ const App = () => {
           user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         },
-        signers: [baseAccount]
+        signers: [programAccount]
       });
       await getGifList();
     } catch(error) {
