@@ -25,7 +25,7 @@ const opts = {
 
 
 // Constants
-const TWITTER_HANDLE = 'vit0rrk';
+const TWITTER_HANDLE = 'hereJers';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
 const App = () => {
@@ -210,9 +210,12 @@ const sendGif = async () => {
     <div className="App">
       <div className="container">
         <div className="header-container">
-          <p className="header">🖼 Rei Ayanami GIF portal</p>
+          <p className="header">
+            <img src='rei-icon.png' />
+            BEST EVA GIRL GIFS
+          </p>
           <p className="sub-text">
-            View your GIF collection in the metaverse ✨
+            A Rei Ayanami Gif collection in the metaverse ✨
           </p>
           {!walletAddress && renderNotConnectedContainer()}
           {walletAddress && renderConnectedContainer()}
