@@ -32,6 +32,8 @@ const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
 const App = () => {
   const [walletAddress, setWalletAddress] = useState(null);
+  const [programAccount, setProgramAccount] = useState(null);
+  const [programBump, setProgramBump] = useState(null);
   const [inputValue, setInputValue] = useState('');
   const [gifList, setGifList] = useState([]);
   const checkIfWalletIsConnected = async () => {
@@ -66,6 +68,15 @@ const App = () => {
     }
   };
 
+  const getPda = async () => {
+    const [baseAccount, baseAccountBump] = await web3.PublicKey.findProgramAddress(
+      [Buffer.from("base_account")],
+      programID
+    );
+    setProgramAccount(baseAccount);
+    setProgramBump(baseAccountBump);
+  }
+
   const getProvider = () => {
     const connection = new Connection(network, opts.preflightCommitment);
     const provider = new Provider(
@@ -79,17 +90,15 @@ const App = () => {
       const provider = getProvider();
       const program = new Program(idl, programID, provider);
       console.log("ping")
-      await program.rpc.startStuffOff({
+      await program.rpc.startStuffOff(programBump, {
         accounts: {
-          baseAccount: baseAccount.publicKey,
+          baseAccount: programAccount,
           user: provider.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         },
         signers: [baseAccount]
       });
-      console.log("Created a new BaseAccount w/ address:", baseAccount.publicKey.toString())
       await getGifList();
-  
     } catch(error) {
       console.log("Error creating BaseAccount account:", error)
     }
@@ -108,7 +117,7 @@ const sendGif = async () => {
 
     await program.rpc.addGif(inputValue, {
       accounts: {
-        baseAccount: baseAccount.publicKey,
+        baseAccount: programAccount,
         user: provider.wallet.publicKey,
       },
     });
@@ -124,7 +133,7 @@ const sendGif = async () => {
     try {
       const provider = getProvider();
       const program = new Program(idl, programID, provider);
-      const account = await program.account.baseAccount.fetch(baseAccount.publicKey);      
+      const account = await program.account.baseAccount.fetch(programAccount);      
       setGifList(account.gifList)
   
     } catch (error) {
@@ -139,7 +148,7 @@ const sendGif = async () => {
       const program = new Program(idl, programID, provider);
       await program.rpc.upvote(id, {
         accounts: {
-          baseAccount: baseAccount.publicKey
+          baseAccount: programAccount
         }
       })
     } catch (err) {
@@ -222,6 +231,11 @@ const sendGif = async () => {
       getGifList()
     }
   }, [walletAddress]);
+
+  useEffect(() => {
+    getPda();
+
+  }, [])
 
   return (
     <div className="App">
