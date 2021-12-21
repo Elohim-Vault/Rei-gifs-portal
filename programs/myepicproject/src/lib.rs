@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::system_instruction::transfer;
+use anchor_lang::solana_program::program::invoke;
 
-declare_id!("FUcBbwK4tqdb2AeunbgHBRPPRKKnzetBKat6YGh1pffS");
+declare_id!("FwPq1RE8UfMNkj3QzqscZr8jQvf12os7gkcTtv1k4f3Q");
 // RPC means Remote Procedure call
 #[program]
 pub mod myepicproject {
@@ -16,13 +18,11 @@ pub mod myepicproject {
     // ProgramResult it's a Result type that returns OK if the programs run well or ProgramError
     pub fn add_gif(ctx: Context<AddGif>, gif_link: String ) -> ProgramResult {
         let base_account = &mut ctx.accounts.base_account;
-        let user = &mut ctx.accounts.user;
-
         // Build the struct
         let item = ItemStruct {
             id: base_account.total_gifs,
             gif_link: gif_link.to_string(),
-            address: *user.to_account_info().key,
+            address: *ctx.accounts.user.to_account_info().key,
             votes: 1,
         };
         base_account.gif_list.push(item);
@@ -31,8 +31,7 @@ pub mod myepicproject {
     }
 
     pub fn upvote(ctx: Context<Upvote>, id: u64) -> ProgramResult {
-        let base_account = &mut ctx.accounts.base_account;
-        for gif in &mut base_account.gif_list {
+        for gif in ctx.accounts.base_account.gif_list.iter_mut() {
             if gif.id == id {
                 gif.votes += 1;
             }
@@ -40,9 +39,20 @@ pub mod myepicproject {
         Ok(())
     }
 
-    // pub fn tip(ctx: Context<Tip>, amount: u64) -> ProgramResult {
-    //     Ok(())
-    // }
+    pub fn tip(ctx: Context<Tip>, amount: u64) -> ProgramResult {
+       let instruction = transfer(
+            &ctx.accounts.from.key(),
+            &ctx.accounts.to.key(),
+            amount
+        );
+        return invoke(
+            &instruction,
+            &[
+                ctx.accounts.from.to_account_info(),
+                ctx.accounts.to.to_account_info()   
+            ],
+        );
+    }
 }
 
 // Implement a deserializer in struct data.
@@ -51,9 +61,12 @@ pub mod myepicproject {
 #[instruction(base_account_bump: u8)]
 pub struct StartStuffOff<'info> {
     #[account(
-        init,
+        init_if_needed,
         payer = user,
-        seeds = [b"base_account".as_ref()],
+        seeds = [
+            b"base_account".as_ref(),
+            user.key().as_ref()
+        ],
         bump = base_account_bump,
         space = 9000
     )]
@@ -89,6 +102,15 @@ pub struct Upvote<'info> {
     pub base_account: Account<'info, BaseAccount>
 }
 
+#[derive(Accounts)]
+pub struct Tip<'info> {
+    #[account(mut)]
+    pub from: Signer<'info>,
+    #[account(mut)]
+    pub to: AccountInfo<'info>,
+    pub system_program: Program<'info, System>
+}
+
 // This struct will be serialized and stored
 #[account]
 #[derive(Default)]
@@ -97,3 +119,17 @@ pub struct BaseAccount {
     pub gif_list: Vec<ItemStruct>,
     pub bump: u8,
 }
+
+// impl<'a, 'b, 'c, 'info> From<&mut Tip<'info>>
+//     for CpiContext<'a, 'b, 'c, 'info, Transfer<'info>>
+// {
+//     fn from(accounts: &mut Tip<'info>) -> CpiContext<'a, 'b, 'c, 'info, Transfer<'info>> {
+//         let cpi_accounts = Transfer {
+//             from: accounts.from.clone(),
+//             to: accounts.to.clone(),
+//             authority: accounts.authority.clone(),
+//         };
+//         let cpi_program = accounts.token_program.clone();
+//         CpiContext::new(cpi_program, cpi_accounts)
+//     }
+// }
