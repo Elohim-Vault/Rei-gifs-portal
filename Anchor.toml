@@ -1,11 +1,14 @@
+
 [programs.devnet]
-myepicproject = "FUcBbwK4tqdb2AeunbgHBRPPRKKnzetBKat6YGh1pffS"
+myepicproject = "FwPq1RE8UfMNkj3QzqscZr8jQvf12os7gkcTtv1k4f3Q"
+[programs.localnet]
+myepicproject = "FwPq1RE8UfMNkj3QzqscZr8jQvf12os7gkcTtv1k4f3Q"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "/home/jeronimo/.config/solana/id.json"
 
 [scripts]
